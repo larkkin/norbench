@@ -1,19 +1,21 @@
 #!/bin/bash
 #SBATCH --job-name=norbench
-#SBATCH --account=project_465000144
+#SBATCH --account=nn9851k
 #SBATCH --time=15:00:00
 #SBATCH --mem-per-cpu=7G
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gpus-per-node=1
-#SBATCH --partition=standard-g
+#SBATCH --partition=accel
 
 # Load modules
 module --quiet purge
-module load LUMI/22.08
-module load cray-python/3.9.12.1
-module load rocm/5.2.3
+module load nlpl-scipy-ecosystem/2022.01-gomkl-2021a-Python-3.9.5
+module load nlpl-nlptools/2022.01-gomkl-2021a-Python-3.9.5
+module load nlpl-python-candy/2022.01-gomkl-2021a-Python-3.9.5
+module load nlpl-pytorch/1.11.0-gomkl-2021a-cuda-11.3.1-Python-3.9.5
+module load nlpl-transformers/4.24.0-gomkl-2021a-Python-3.9.5
 
 export NCCL_SOCKET_IFNAME=hsn
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
@@ -35,7 +37,8 @@ echo ${TYPE}
 for SEED in 10 20 30 40 50
 do
   echo ${SEED}
-  python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../sentiment_analysis/${TYPE}/train.csv.gz -dev ../sentiment_analysis/${TYPE}/dev.csv.gz -t ../sentiment_analysis/${TYPE}/test.csv.gz -s ${SEED}
+  # python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../sentiment_analysis/${TYPE}/train.csv.gz -dev ../sentiment_analysis/${TYPE}/dev.csv.gz -t ../sentiment_analysis/${TYPE}/test.csv.gz -s ${SEED}
+  python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../../${TYPE}/train.csv -dev ../../${TYPE}/dev.csv -t ../../${TYPE}/test.csv -s ${SEED}
 done
 
 python3 analysis.py scores/${IDENTIFIER}_${TYPE}.tsv

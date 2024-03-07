@@ -14,6 +14,7 @@ import os
 import random
 import numpy as np
 import sys
+from pathlib import Path
 
 
 def multi_acc(y_pred, y_test):
@@ -88,9 +89,14 @@ if __name__ == "__main__":
     )
     arg(
         "--type",
-        choices=["sentence", "document"],
-        help="Sentence or document classification",
-        default="sentence",
+        choices=[
+            "mixed_class_4_class",
+            "mixed_class_negative-vs-all",
+            "mixed_class_positive-vs-all",
+            "no_mixed_class",
+        ],
+        # help="Sentence or document classification",
+        # default="sentence",
     )
     arg("--epochs", "-e", type=int, help="Number of epochs", default=10)
     arg("--maxl", "-l", type=int, help="Max length", default=512)
@@ -124,7 +130,15 @@ if __name__ == "__main__":
     test_data = pd.read_csv(testset)
     logger.info("Test data reading complete.")
 
-    mapping = {0: "Negative", 1: "Neutral", 2: "Positive"}
+    # mapping = {0: "Negative", 1: "Neutral", 2: "Positive"}
+    if args.type == 'mixed_class_4_class':
+        mapping = {0: "Negative", 1: "Neutral", 2: "Positive", 3: "Mixed-class"}
+    elif args.type == 'mixed_class_negative-vs-all':
+        mapping = {1: "Negative", 0: "Non-negative"}
+    elif args.type == 'mixed_class_positive-vs-all':
+        mapping = {1: "Positive", 0: "Non-positive"}
+    elif args.type == 'no_mixed_class':
+        mapping = {0: "Negative", 1: "Neutral", 2: "Positive"}
 
     if args.type == "sentence":
         logger.info("Fine-tuning for sentence-level sentiment analysis")
@@ -261,6 +275,17 @@ if __name__ == "__main__":
 
     mapped_labels = [mapping[el] for el in test_labels]
     mapped_predictions = [mapping[el] for el in test_predictions]
+
+    predictions_df = pd.DataFrame()
+    predictions_df['label'] = mapped_labels
+    predictions_df['prediction'] = mapped_predictions
+    predictions_df['seed'] = args.seed
+    predictions_df.to_csv(
+        "predictions/" + current_name + ".csv",
+        index=False,
+        mode='a',
+    )
+
     precision, recall, fscore, support = metrics.precision_recall_fscore_support(
         mapped_labels, mapped_predictions, average="macro", zero_division=0
     )
@@ -271,5 +296,11 @@ if __name__ == "__main__":
         )
     )
 
-    with open("scores/" + current_name + ".tsv", "a") as f:
+    scores_dir = Path("scores")
+    scores_dir.mkdir(parents=True, exist_ok=True)
+    with open(scores_dir / (current_name + ".tsv"), "a") as f:
         f.write(f"{args.seed}\t{scores[0]}\t{scores[1]}\n")
+
+    models_dir = Path("models")
+    models_dir.mkdir(parents=True, exist_ok=True)
+    model.save(models_dir / (current_name)
