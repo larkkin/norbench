@@ -37,8 +37,7 @@ echo ${TYPE}
 for SEED in 10 20 30 40 50
 do
   echo ${SEED}
-  # python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../sentiment_analysis/${TYPE}/train.csv.gz -dev ../sentiment_analysis/${TYPE}/dev.csv.gz -t ../sentiment_analysis/${TYPE}/test.csv.gz -s ${SEED}
-  python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../../${TYPE}/train.csv -dev ../../${TYPE}/dev.csv -t ../../${TYPE}/test.csv -s ${SEED}
+  python3 sa_classification.py  -m ${MODEL} -i ${IDENTIFIER} --type ${TYPE} -d ../sentiment_analysis/sentence_mixed_class/${TYPE}/train.csv -dev ../sentiment_analysis/sentence_mixed_class/${TYPE}/dev.csv -t ../sentiment_analysis/sentence_mixed_class/${TYPE}/test.csv -s ${SEED}
 done
 
 python3 analysis.py scores/${IDENTIFIER}_${TYPE}.tsv
